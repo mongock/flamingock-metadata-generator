@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.URL
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     `java-gradle-plugin`
@@ -7,6 +9,9 @@ plugins {
     id("java")
 }
 
+
+group = "io.flamingock"
+version = getFlamingockReleasedVersion()
 
 repositories {
     mavenCentral()
@@ -67,4 +72,17 @@ compileKotlin.kotlinOptions {
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "1.8"
+}
+
+fun getFlamingockReleasedVersion(): String {
+    val metadataUrl = "https://repo.maven.apache.org/maven2/io/flamingock/flamingock-core/maven-metadata.xml"
+    try {
+        val metadata = URL(metadataUrl).readText()
+        val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val inputStream = metadata.byteInputStream()
+        val document = documentBuilder.parse(inputStream)
+        return document.getElementsByTagName("latest").item(0).textContent
+    } catch (e: Exception) {
+        throw RuntimeException("Cannot obtain Flamingock's latest version")
+    }
 }
