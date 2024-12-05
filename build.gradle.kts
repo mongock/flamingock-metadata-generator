@@ -1,0 +1,70 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    `java-gradle-plugin`
+    `kotlin-dsl`
+    `maven-publish`
+    id("java")
+}
+
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+val jacksonVersion = "2.15.2"
+val flamingockVersion = "latest.release"
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("io.flamingock:flamingock-core-api:$flamingockVersion")
+
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+
+    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+gradlePlugin {
+    plugins {
+        create("autoConfigurePlugin") {
+            id = "io.flamingock.MetadataBundler"
+            implementationClass = "io.flamingock.metadata.MetadataBundlerPlugin"
+        }
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
